@@ -3,6 +3,23 @@ FROM $from
 
 ARG target_tag
 
+COPY etc/ /etc/
+
+# kernel
+RUN mkdir -p /boot/dtb && \
+    dnf -y remove \
+        kernel \
+        kernel-core \
+        kernel-modules \
+        kernel-modules-core && \
+    dnf -y install \
+        kernel \
+        kernel-headers && \
+    rm -r /boot/dtb
+
+RUN kver=$(rpm -q --qf '%{VERSION}-%{RELEASE}' kernel) && \
+    dracut -vf --kver $kver /usr/lib/modules/$kver/initramfs.img
+
 # cleanup
 RUN dnf clean all && rm -rf /var/log/*
 
